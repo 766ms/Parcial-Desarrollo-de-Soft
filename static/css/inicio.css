@@ -1,0 +1,12 @@
+body { background: #faf3f7; }
+.barra { display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding: 1rem 1.5rem; background: var(--vino); color: #fff; }
+.btn-salir { background: var(--rosa); color: #fff; border: 0; border-radius: 30px; padding: .5rem 1.2rem; font: inherit; cursor: pointer; }
+.menu { max-width: 900px; margin: 2rem auto; padding: 0 1rem; }
+.menu-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; }
+.menu-item { display: block; background: #fff; border-radius: 14px; padding: 1.4rem; color: var(--vino-oscuro); font-weight: 600; text-decoration: none; border-left: 6px solid var(--rosa); margin-bottom: 1rem; }
+.menu-item:hover { background: var(--rosa-claro); }
+.menu-item small { display: block; font-weight: 400; color: #666; }
+.menu h2 { margin-top: 2rem; font-size: 1.1rem; color: var(--vino-oscuro); }
+.mensajes { list-style: none; padding: 0; margin: 0 0 1rem; }
+.mensaje { padding: .7rem 1rem; border-radius: 10px; font-size: .9rem; background: #fde8f1; color: #a01650; }
+.mensaje.success { background: #dff3e6; color: #1f6b3a; }

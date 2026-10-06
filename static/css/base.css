@@ -1,0 +1,11 @@
+:root {
+  --vino: #6b1442;
+  --vino-oscuro: #8a2a62;
+  --rosa: #c0538a;
+  --rosa-claro: #e3b3cf;
+  --texto: #2b2b2b;
+}
+* { box-sizing: border-box; }
+body { margin: 0; font-family: "Poppins", sans-serif; color: var(--texto); }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+:focus-visible { outline: 3px solid var(--rosa); outline-offset: 2px; }

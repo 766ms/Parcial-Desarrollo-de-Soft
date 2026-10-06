@@ -1,0 +1,7 @@
+node_modules/
+.neon
+.env
+*.sqlite3
+__pycache__/
+*.pyc
+.agents/

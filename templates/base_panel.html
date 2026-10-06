@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% load static %}
+{% block css %}
+<link rel="stylesheet" href="{% static 'css/inicio.css' %}">
+<link rel="stylesheet" href="{% static 'css/panel.css' %}">
+{% endblock %}
+
+{% block contenido %}
+<header class="barra">
+  <a class="barra-inicio" href="{% url 'inicio' %}">← Menú principal</a>
+  <form method="post" action="{% url 'logout' %}">{% csrf_token %}<button class="btn-salir">Cerrar sesión</button></form>
+</header>
+<main class="panel">
+  {% if messages %}
+    <ul class="mensajes">{% for m in messages %}<li class="mensaje {{ m.tags }}">{{ m.message }}</li>{% endfor %}</ul>
+  {% endif %}
+  {% block panel %}{% endblock %}
+</main>
+{% endblock %}

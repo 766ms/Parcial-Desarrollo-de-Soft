@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% load static %}
+{% block titulo %}Menú principal{% endblock %}
+{% block css %}<link rel="stylesheet" href="{% static 'css/inicio.css' %}">{% endblock %}
+
+{% block contenido %}
+<header class="barra">
+  <strong>Hola, {{ user.nombre_completo }}</strong>
+  <form method="post" action="{% url 'logout' %}">{% csrf_token %}<button class="btn-salir">Cerrar sesión</button></form>
+</header>
+
+<main class="menu">
+  <h1>Menú principal</h1>
+  {% if messages %}
+    <ul class="mensajes">{% for m in messages %}<li class="mensaje {{ m.tags }}">{{ m.message }}</li>{% endfor %}</ul>
+  {% endif %}
+
+  {% if user.es_admin %}
+    <div class="menu-grid">
+      <a class="menu-item" href="{% url 'cuestionario_lista' %}">Gestionar cuestionarios</a>
+      <a class="menu-item" href="{% url 'usuario_lista' %}">Gestionar usuarios</a>
+      <a class="menu-item" href="{% url 'periodo_lista' %}">Gestionar periodos</a>
+      <a class="menu-item" href="{% url 'evaluacion_lista' %}">Configurar evaluaciones</a>
+    </div>
+  {% endif %}
+
+  <h2>Mis evaluaciones pendientes</h2>
+  {% for e in evaluaciones %}
+    <a class="menu-item" href="{% url 'evaluacion_responder' e.pk %}">{{ e.evaluado }} · {{ e.cargo_evaluado }} <small>{{ e.cuestionario }} · {{ e.periodo }}</small></a>
+  {% empty %}
+    <p>No tienes evaluaciones pendientes en el periodo activo.</p>
+  {% endfor %}
+</main>
+{% endblock %}

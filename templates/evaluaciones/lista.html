@@ -1,0 +1,24 @@
+{% extends "base_panel.html" %}
+{% block titulo %}Evaluaciones{% endblock %}
+{% block panel %}
+<div class="cabecera">
+  <h1>Evaluaciones</h1>
+  <a class="btn" href="{% url 'evaluacion_crear' %}">Nueva evaluación</a>
+</div>
+{% for e in evaluaciones %}
+  <article class="fila">
+    <div class="fila-info">
+      <a href="{% url 'evaluacion_detalle' e.pk %}"><strong>{{ e.evaluador }} evalúa a {{ e.evaluado }}</strong></a>
+      <small>{{ e.cuestionario }} · {{ e.periodo }} · {{ e.cargo_evaluado }}</small>
+    </div>
+    <span class="etiqueta {% if e.estado == 'TERMINADA' %}on{% else %}neutra{% endif %}">{{ e.get_estado_display }}</span>
+    <div class="fila-acciones">
+      <a href="{% url 'evaluacion_detalle' e.pk %}">Ver</a>
+      <a href="{% url 'evaluacion_editar' e.pk %}">Editar</a>
+      <a class="peligro" href="{% url 'evaluacion_eliminar' e.pk %}">Eliminar</a>
+    </div>
+  </article>
+{% empty %}
+  <p class="vacio">Aún no hay evaluaciones configuradas. Asigna un cuestionario, un periodo, quién evalúa y quién es evaluado.</p>
+{% endfor %}
+{% endblock %}

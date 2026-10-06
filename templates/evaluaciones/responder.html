@@ -1,0 +1,41 @@
+{% extends "base_panel.html" %}
+{% block titulo %}{{ evaluacion.cuestionario.nombre }}{% endblock %}
+{% block panel %}
+<div class="cabecera">
+  <div>
+    <h1>{{ evaluacion.cuestionario.nombre }}</h1>
+    <p class="descripcion">Evaluado: <strong>{{ evaluacion.evaluado }}</strong> · {{ evaluacion.cargo_evaluado }} · {{ evaluacion.periodo }}</p>
+  </div>
+</div>
+
+<form method="post" novalidate>
+  {% csrf_token %}
+  {% for s in secciones %}
+    <section class="tarjeta">
+      <header class="tarjeta-cab"><div><h2>{{ s.obj.nombre }}</h2>{% if s.obj.descripcion %}<small>{{ s.obj.descripcion }}</small>{% endif %}</div></header>
+      {% for p in s.preguntas %}
+        <fieldset class="enunciado {% if p.error %}con-error{% endif %}">
+          <legend>{{ p.obj.descripcion }}{% if p.obj.requerida %} <span class="req" title="Obligatoria">*</span>{% endif %}</legend>
+          {% if p.obj.comentarios %}<small class="nota">{{ p.obj.comentarios }}</small>{% endif %}
+          {% if p.obj.tipo == "SIMPLE" %}
+            <div class="opciones-resp">
+              {% for o in p.opciones %}
+                <label class="opcion"><input type="radio" name="{{ p.campo }}" value="{{ o.obj.pk }}" {% if o.marcada %}checked{% endif %}> {{ o.obj.nombre }}</label>
+              {% endfor %}
+            </div>
+          {% else %}
+            <textarea class="entrada" name="{{ p.campo }}" rows="4">{{ p.valor }}</textarea>
+          {% endif %}
+          {% if p.error %}<p class="error">{{ p.error }}</p>{% endif %}
+        </fieldset>
+      {% endfor %}
+    </section>
+  {% empty %}
+    <p class="vacio">Este cuestionario todavía no tiene preguntas.</p>
+  {% endfor %}
+  <div class="acciones">
+    <a class="btn btn-claro" href="{% url 'inicio' %}">Salir sin enviar</a>
+    <button class="btn" type="submit">Enviar evaluación</button>
+  </div>
+</form>
+{% endblock %}

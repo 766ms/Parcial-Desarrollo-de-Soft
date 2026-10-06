@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% load static %}
+{% block titulo %}Iniciar sesión · Evaluaciones{% endblock %}
+{% block css %}
+<link rel="stylesheet" href="{% static 'css/login.css' %}">{% endblock %}
+{% block body_class %}pagina-login{% endblock %}
+
+{% block contenido %}
+<main class="login-card">
+  <aside class="login-lateral" aria-hidden="true">
+    <span class="login-pestana">Iniciar sesión</span>
+  </aside>
+
+  <section class="login-panel">
+    <div class="login-avatar" aria-hidden="true">
+      <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="#fff" stroke-width="1.6"
+        stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="8" r="4" />
+        <path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7z" />
+      </svg>
+    </div>
+    <h1>LOGIN</h1>
+
+    <form method="post" novalidate>
+      {% csrf_token %}
+      {% if form.non_field_errors %}
+      <p class="login-error" role="alert">{{ form.non_field_errors.0 }}</p>
+      {% endif %}
+      {% if form.username.errors %}
+      <p class="login-error" role="alert">{{ form.username.errors.0 }}</p>
+      {% endif %}
+
+      <label class="campo">
+        <svg class="campo-icono" viewBox="0 0 24 24" width="22" height="22" fill="#8a8a8a">
+          <circle cx="12" cy="12" r="11" />
+          <circle cx="12" cy="9" r="3.4" fill="#fff" />
+          <path d="M5.5 19c1-3.2 3.6-4.6 6.5-4.6s5.5 1.4 6.5 4.6z" fill="#fff" />
+        </svg>
+        <span class="sr-only">Email</span>
+        {{ form.username }}
+      </label>
+
+      <label class="campo">
+        <svg class="campo-icono" viewBox="0 0 24 24" width="22" height="22" fill="#6a6a6a">
+          <rect x="5" y="10" width="14" height="11" rx="2" />
+          <path d="M8 10V7a4 4 0 018 0v3" fill="none" stroke="#6a6a6a" stroke-width="2" />
+        </svg>
+        <span class="sr-only">Contraseña</span>
+        {{ form.password }}
+        <button type="button" class="ver-clave" id="verClave" aria-label="Mostrar contraseña">Ver</button>
+      </label>
+
+      <input type="hidden" name="next" value="{{ next }}">
+      <div class="login-acciones">
+        <button type="submit" class="btn-login">Entrar</button>
+      </div>
+    </form>
+  </section>
+</main>
+{% endblock %}
+
+{% block js %}
+<script src="{% static 'js/login.js' %}"></script>{% endblock %}

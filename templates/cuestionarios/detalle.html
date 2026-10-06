@@ -1,0 +1,63 @@
+{% extends "base_panel.html" %}
+{% block titulo %}{{ cuestionario.nombre }}{% endblock %}
+{% block panel %}
+<div class="cabecera">
+  <div>
+    <a class="volver" href="{% url 'cuestionario_lista' %}">Cuestionarios</a>
+    <h1>{{ cuestionario.nombre }}
+      <span class="etiqueta {% if cuestionario.estado %}on{% else %}off{% endif %}">{% if cuestionario.estado %}Activo{% else %}Inactivo{% endif %}</span>
+    </h1>
+    {% if cuestionario.descripcion %}<p class="descripcion">{{ cuestionario.descripcion }}</p>{% endif %}
+  </div>
+  <div class="fila-acciones">
+    <a href="{% url 'cuestionario_editar' cuestionario.pk %}">Editar</a>
+    <a class="peligro" href="{% url 'cuestionario_eliminar' cuestionario.pk %}">Eliminar</a>
+  </div>
+</div>
+
+{% for s in cuestionario.secciones.all %}
+  <section class="tarjeta">
+    <header class="tarjeta-cab">
+      <div><h2>{{ s.nombre }}</h2>{% if s.descripcion %}<small>{{ s.descripcion }}</small>{% endif %}</div>
+      <div class="fila-acciones">
+        <a href="{% url 'pregunta_crear' s.pk %}">Agregar pregunta</a>
+        <a href="{% url 'seccion_editar' s.pk %}">Editar</a>
+        <a class="peligro" href="{% url 'seccion_eliminar' s.pk %}">Eliminar</a>
+      </div>
+    </header>
+
+    {% for p in s.preguntas.all %}
+      <div class="pregunta">
+        <div class="pregunta-cab">
+          <span><strong>{{ p.orden }}.</strong> {{ p.descripcion }}</span>
+          <span class="etiqueta neutra">{{ p.get_tipo_display }}</span>
+          {% if p.requerida %}<span class="etiqueta neutra">Requerida</span>{% endif %}
+        </div>
+        <div class="fila-acciones">
+          {% if p.tipo == "SIMPLE" %}<a href="{% url 'opcion_crear' p.pk %}">Agregar opción</a>{% endif %}
+          <a href="{% url 'pregunta_editar' p.pk %}">Editar</a>
+          <a class="peligro" href="{% url 'pregunta_eliminar' p.pk %}">Eliminar</a>
+        </div>
+        {% if p.tipo == "SIMPLE" %}
+          <ul class="opciones">
+            {% for o in p.opciones.all %}
+              <li>{{ o.nombre }} <small>valor {{ o.valor }}</small>
+                <a href="{% url 'opcion_editar' o.pk %}">Editar</a>
+                <a class="peligro" href="{% url 'opcion_eliminar' o.pk %}">Eliminar</a>
+              </li>
+            {% empty %}<li class="vacio">Esta pregunta aún no tiene opciones.</li>{% endfor %}
+          </ul>
+        {% else %}
+          <p class="nota">Respuesta en caja de texto.</p>
+        {% endif %}
+      </div>
+    {% empty %}
+      <p class="vacio">Esta sección aún no tiene preguntas.</p>
+    {% endfor %}
+  </section>
+{% empty %}
+  <p class="vacio">Este cuestionario aún no tiene secciones.</p>
+{% endfor %}
+
+<a class="btn" href="{% url 'seccion_crear' cuestionario.pk %}">Agregar sección</a>
+{% endblock %}

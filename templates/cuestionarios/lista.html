@@ -1,0 +1,25 @@
+{% extends "base_panel.html" %}
+{% block titulo %}Cuestionarios{% endblock %}
+{% block panel %}
+<div class="cabecera">
+  <h1>Cuestionarios</h1>
+  <a class="btn" href="{% url 'cuestionario_crear' %}">Nuevo cuestionario</a>
+</div>
+
+{% for c in cuestionarios %}
+  <article class="fila">
+    <div class="fila-info">
+      <a href="{% url 'cuestionario_detalle' c.pk %}"><strong>{{ c.nombre }}</strong></a>
+      <small>{{ c.total_secciones }} sección{{ c.total_secciones|pluralize:"es" }}</small>
+    </div>
+    <span class="etiqueta {% if c.estado %}on{% else %}off{% endif %}">{% if c.estado %}Activo{% else %}Inactivo{% endif %}</span>
+    <div class="fila-acciones">
+      <a href="{% url 'cuestionario_detalle' c.pk %}">Abrir</a>
+      <a href="{% url 'cuestionario_editar' c.pk %}">Editar</a>
+      <a class="peligro" href="{% url 'cuestionario_eliminar' c.pk %}">Eliminar</a>
+    </div>
+  </article>
+{% empty %}
+  <p class="vacio">Aún no hay cuestionarios. Crea el primero para armar sus secciones y preguntas.</p>
+{% endfor %}
+{% endblock %}

@@ -1,0 +1,20 @@
+{% extends "base_panel.html" %}
+{% block titulo %}Periodos{% endblock %}
+{% block panel %}
+<div class="cabecera">
+  <h1>Periodos</h1>
+  <a class="btn" href="{% url 'periodo_crear' %}">Nuevo periodo</a>
+</div>
+{% for p in periodos %}
+  <article class="fila">
+    <div class="fila-info"><strong>{{ p.nombre }}</strong><small>{{ p.fecha_apertura|date:"d/m/Y" }} al {{ p.fecha_cierre|date:"d/m/Y" }}</small></div>
+    <span class="etiqueta {% if p.esta_activo %}on{% else %}off{% endif %}">{% if p.esta_activo %}Activo ahora{% else %}Fuera de fechas{% endif %}</span>
+    <div class="fila-acciones">
+      <a href="{% url 'periodo_editar' p.pk %}">Editar</a>
+      <a class="peligro" href="{% url 'periodo_eliminar' p.pk %}">Eliminar</a>
+    </div>
+  </article>
+{% empty %}
+  <p class="vacio">Aún no hay periodos. Crea uno para habilitar las evaluaciones en un rango de fechas.</p>
+{% endfor %}
+{% endblock %}

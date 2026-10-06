@@ -1,0 +1,15 @@
+{% extends "base_panel.html" %}
+{% block titulo %}{{ titulo }}{% endblock %}
+{% block panel %}
+<section class="formulario">
+  <h1>{{ titulo }}</h1>
+  <p>¿Seguro que quieres eliminar «{{ object }}»? Esta acción no se puede deshacer. {{ aviso }}</p>
+  <form method="post">
+    {% csrf_token %}
+    <div class="acciones">
+      <a class="btn btn-claro" href="{{ cancelar_url }}">Cancelar</a>
+      <button class="btn btn-peligro" type="submit">Eliminar</button>
+    </div>
+  </form>
+</section>
+{% endblock %}

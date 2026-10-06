@@ -1,0 +1,21 @@
+{% extends "base_panel.html" %}
+{% block titulo %}Usuarios{% endblock %}
+{% block panel %}
+<div class="cabecera">
+  <h1>Usuarios</h1>
+  <a class="btn" href="{% url 'usuario_crear' %}">Nuevo usuario</a>
+</div>
+{% for u in usuarios %}
+  <article class="fila">
+    <div class="fila-info"><strong>{{ u.nombre_completo }}</strong><small>{{ u.email }}</small></div>
+    <span class="etiqueta neutra">{{ u.get_rol_display }}</span>
+    <span class="etiqueta {% if u.estado %}on{% else %}off{% endif %}">{% if u.estado %}Activo{% else %}Inactivo{% endif %}</span>
+    <div class="fila-acciones">
+      <a href="{% url 'usuario_editar' u.pk %}">Editar</a>
+      <a class="peligro" href="{% url 'usuario_eliminar' u.pk %}">Eliminar</a>
+    </div>
+  </article>
+{% empty %}
+  <p class="vacio">Aún no hay usuarios.</p>
+{% endfor %}
+{% endblock %}

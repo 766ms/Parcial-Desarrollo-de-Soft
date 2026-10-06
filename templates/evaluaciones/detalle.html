@@ -1,0 +1,33 @@
+{% extends "base_panel.html" %}
+{% block titulo %}Evaluación{% endblock %}
+{% block panel %}
+<div class="cabecera">
+  <div>
+    <a class="volver" href="{% url 'evaluacion_lista' %}">Evaluaciones</a>
+    <h1>{{ evaluacion.evaluador }} evalúa a {{ evaluacion.evaluado }}</h1>
+    <p class="descripcion">{{ evaluacion.cuestionario }} · {{ evaluacion.periodo }} · {{ evaluacion.cargo_evaluado }} ·
+      <span class="etiqueta neutra">{{ evaluacion.get_estado_display }}</span></p>
+    {% if evaluacion.fecha_hora_final %}<p class="descripcion">Terminada el {{ evaluacion.fecha_hora_final|date:"d/m/Y H:i" }}</p>{% endif %}
+  </div>
+  <div class="fila-acciones">
+    <a href="{% url 'evaluacion_editar' evaluacion.pk %}">Editar</a>
+    <a class="peligro" href="{% url 'evaluacion_eliminar' evaluacion.pk %}">Eliminar</a>
+  </div>
+</div>
+
+{% if evaluacion.estado != "TERMINADA" %}
+  <p class="vacio">Esta evaluación aún no tiene respuestas.</p>
+{% else %}
+  {% for seccion, filas in resumen %}
+    <section class="tarjeta">
+      <header class="tarjeta-cab"><h2>{{ seccion.nombre }}</h2></header>
+      {% for pregunta, texto in filas %}
+        <div class="pregunta">
+          <strong>{{ pregunta.descripcion }}</strong>
+          <p class="respuesta">{% if texto %}{{ texto }}{% else %}<span class="vacio">Sin respuesta</span>{% endif %}</p>
+        </div>
+      {% endfor %}
+    </section>
+  {% endfor %}
+{% endif %}
+{% endblock %}

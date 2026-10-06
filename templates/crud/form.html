@@ -1,0 +1,23 @@
+{% extends "base_panel.html" %}
+{% block titulo %}{{ titulo }}{% endblock %}
+{% block panel %}
+<section class="formulario">
+  <h1>{{ titulo }}</h1>
+  <form method="post" novalidate>
+    {% csrf_token %}
+    {% for e in form.non_field_errors %}<p class="error">{{ e }}</p>{% endfor %}
+    {% for campo in form %}
+      {% if campo.field.widget.input_type == "checkbox" %}
+        <div class="grupo grupo-check">{{ campo }}<label for="{{ campo.id_for_label }}">{{ campo.label }}</label></div>
+      {% else %}
+        <div class="grupo"><label for="{{ campo.id_for_label }}">{{ campo.label }}</label>{{ campo }}</div>
+      {% endif %}
+      {% for e in campo.errors %}<p class="error">{{ e }}</p>{% endfor %}
+    {% endfor %}
+    <div class="acciones">
+      <a class="btn btn-claro" href="{{ cancelar_url }}">Cancelar</a>
+      <button class="btn" type="submit">Guardar</button>
+    </div>
+  </form>
+</section>
+{% endblock %}
