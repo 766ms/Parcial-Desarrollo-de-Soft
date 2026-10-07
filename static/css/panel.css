@@ -35,6 +35,8 @@ p.vacio { background: #fff; border-radius: 14px; padding: 1.2rem; }
 
 .etiqueta { font-size: .72rem; font-weight: 600; border-radius: 20px; padding: .15rem .7rem; vertical-align: middle; }
 .etiqueta.on { background: #dff3e6; color: #1f6b3a; }
+.etiqueta.proceso { background: #e0f2fe; color: #0284c7; }
+.etiqueta.pendiente { background: #fef3c7; color: #b45309; }
 .etiqueta.off { background: #f1e3e3; color: #8c3b3b; }
 .etiqueta.neutra { background: #f4e8ef; color: var(--vino-oscuro); }
 

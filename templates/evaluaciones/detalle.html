@@ -5,8 +5,8 @@
   <div>
     <a class="volver" href="{% url 'evaluacion_lista' %}">Evaluaciones</a>
     <h1>{{ evaluacion.evaluador }} evalúa a {{ evaluacion.evaluado }}</h1>
-    <p class="descripcion">{{ evaluacion.cuestionario }} · {{ evaluacion.periodo }} · {{ evaluacion.cargo_evaluado }} ·
-      <span class="etiqueta neutra">{{ evaluacion.get_estado_display }}</span></p>
+    <p class="descripcion"><strong>Cuestionario:</strong> {{ evaluacion.cuestionario }} · <strong>Periodo:</strong> {{ evaluacion.periodo }} · <strong>Cargo del evaluado:</strong> {{ evaluacion.cargo_evaluado }} ·
+      <span class="etiqueta {% if evaluacion.estado == 'TERMINADA' %}on{% elif evaluacion.estado == 'PROCESO' %}proceso{% else %}pendiente{% endif %}">{{ evaluacion.get_estado_display }}</span></p>
     {% if evaluacion.fecha_hora_final %}<p class="descripcion">Terminada el {{ evaluacion.fecha_hora_final|date:"d/m/Y H:i" }}</p>{% endif %}
   </div>
   <div class="fila-acciones">

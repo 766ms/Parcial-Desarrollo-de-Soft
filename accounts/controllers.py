@@ -14,6 +14,16 @@ class LoginController(LoginView):
     authentication_form = LoginForm         # valida contra el MODELO Usuario
     redirect_authenticated_user = True
 
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        user = self.request.user
+        nombre = user.nombre_completo.split()[0] if user.nombre_completo else "Usuario"
+        if user.es_admin:
+            messages.success(self.request, "¡Bienvenido Admin!", extra_tags="toast_bienvenida admin_toast")
+        else:
+            messages.success(self.request, f"¡Bienvenido, {nombre}!", extra_tags="toast_bienvenida user_toast")
+        return response
+
 
 class UsuarioLista(CrudLista):
     template_name = "usuarios/lista.html"

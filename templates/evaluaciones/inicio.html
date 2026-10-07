@@ -1,34 +1,134 @@
 {% extends "base.html" %}
 {% load static %}
-{% block titulo %}Menú principal{% endblock %}
-{% block css %}<link rel="stylesheet" href="{% static 'css/inicio.css' %}">{% endblock %}
+{% block titulo %}Panel Principal · Sistema de Evaluaciones{% endblock %}
+{% block css %}
+<link rel="stylesheet" href="{% static 'css/inicio.css' %}">
+{% endblock %}
 
 {% block contenido %}
 <header class="barra">
-  <strong>Hola, {{ user.nombre_completo }}</strong>
-  <form method="post" action="{% url 'logout' %}">{% csrf_token %}<button class="btn-salir">Cerrar sesión</button></form>
+  <div class="barra-perfil">
+    <div class="avatar-circulo">{{ user.nombre_completo|slice:":1"|upper }}</div>
+    <div class="perfil-datos">
+      <strong class="perfil-nombre">{{ user.nombre_completo }}</strong>
+      <span class="perfil-rol-pill {% if user.es_admin %}rol-admin{% else %}rol-user{% endif %}">
+        {% if user.es_admin %}Administrador{% else %}Evaluador{% endif %}
+      </span>
+    </div>
+  </div>
+  <form method="post" action="{% url 'logout' %}">
+    {% csrf_token %}
+    <button class="btn-salir" type="submit" title="Cerrar sesión">Cerrar sesión</button>
+  </form>
 </header>
 
-<main class="menu">
-  <h1>Menú principal</h1>
-  {% if messages %}
-    <ul class="mensajes">{% for m in messages %}<li class="mensaje {{ m.tags }}">{{ m.message }}</li>{% endfor %}</ul>
-  {% endif %}
+<main class="dashboard-contenedor">
+  <div class="dashboard-bienvenida">
+    <h1>Panel Principal</h1>
+    <p class="dashboard-subtitulo">Plataforma de evaluación y seguimiento de desempeño</p>
+  </div>
 
   {% if user.es_admin %}
-    <div class="menu-grid">
-      <a class="menu-item" href="{% url 'cuestionario_lista' %}">Gestionar cuestionarios</a>
-      <a class="menu-item" href="{% url 'usuario_lista' %}">Gestionar usuarios</a>
-      <a class="menu-item" href="{% url 'periodo_lista' %}">Gestionar periodos</a>
-      <a class="menu-item" href="{% url 'evaluacion_lista' %}">Configurar evaluaciones</a>
-    </div>
+    <!-- SECCIÓN DE ADMINISTRACIÓN: PUNTOS 1, 2 Y 3 -->
+    <section class="admin-dashboard-seccion">
+      <div class="seccion-cabecera">
+        <div>
+          <h2>Módulos de Administración</h2>
+          <p class="seccion-subtexto">Gestión centralizada de recursos del sistema</p>
+        </div>
+        <span class="badge-contador">3 Categorías</span>
+      </div>
+
+      <div class="admin-categorias-grid">
+        <!-- CATEGORÍA 1: CUESTIONARIOS (PUNTO 1) -->
+        <article class="categoria-card">
+          <div class="card-cuerpo">
+            <div class="card-top">
+              <div class="categoria-icono icono-cuestionario">📝</div>
+              <span class="categoria-badge">{{ total_cuestionarios|default:0 }} Registrado{% if total_cuestionarios != 1 %}s{% endif %}</span>
+            </div>
+            <h3 class="categoria-titulo">1. Gestión de Cuestionarios</h3>
+            <p class="categoria-desc">Diseña y administra cuestionarios con sus secciones, preguntas (simples o libres) y opciones de valoración.</p>
+          </div>
+          <div class="card-acciones-divididas">
+            <a class="btn-categoria-accion btn-primario" href="{% url 'cuestionario_lista' %}">Ver Cuestionarios</a>
+            <a class="btn-categoria-accion btn-secundario" href="{% url 'cuestionario_crear' %}">+ Nuevo Cuestionario</a>
+          </div>
+        </article>
+
+        <!-- CATEGORÍA 2: USUARIOS (PUNTO 2) -->
+        <article class="categoria-card">
+          <div class="card-cuerpo">
+            <div class="card-top">
+              <div class="categoria-icono icono-usuario">👥</div>
+              <span class="categoria-badge">{{ total_usuarios|default:0 }} Usuario{% if total_usuarios != 1 %}s{% endif %}</span>
+            </div>
+            <h3 class="categoria-titulo">2. Gestión de Usuarios</h3>
+            <p class="categoria-desc">Administra las cuentas del personal, roles de acceso (Admin o User) y estados de activación en el sistema.</p>
+          </div>
+          <div class="card-acciones-divididas">
+            <a class="btn-categoria-accion btn-primario" href="{% url 'usuario_lista' %}">Ver Usuarios</a>
+            <a class="btn-categoria-accion btn-secundario" href="{% url 'usuario_crear' %}">+ Nuevo Usuario</a>
+          </div>
+        </article>
+
+        <!-- CATEGORÍA 3: PERIODOS (PUNTO 3) -->
+        <article class="categoria-card">
+          <div class="card-cuerpo">
+            <div class="card-top">
+              <div class="categoria-icono icono-periodo">📅</div>
+              <span class="categoria-badge">{{ total_periodos|default:0 }} Periodo{% if total_periodos != 1 %}s{% endif %}</span>
+            </div>
+            <h3 class="categoria-titulo">3. Gestión de Periodos</h3>
+            <p class="categoria-desc">Establece los lapsos de fecha de apertura y fecha de cierre para la habilitación de los cuestionarios.</p>
+          </div>
+          <div class="card-acciones-divididas">
+            <a class="btn-categoria-accion btn-primario" href="{% url 'periodo_lista' %}">Ver Periodos</a>
+            <a class="btn-categoria-accion btn-secundario" href="{% url 'periodo_crear' %}">+ Nuevo Periodo</a>
+          </div>
+        </article>
+      </div>
+    </section>
   {% endif %}
 
-  <h2>Mis evaluaciones pendientes</h2>
-  {% for e in evaluaciones %}
-    <a class="menu-item" href="{% url 'evaluacion_responder' e.pk %}">{{ e.evaluado }} · {{ e.cargo_evaluado }} <small>{{ e.cuestionario }} · {{ e.periodo }}</small></a>
-  {% empty %}
-    <p>No tienes evaluaciones pendientes en el periodo activo.</p>
-  {% endfor %}
+  <!-- SECCIÓN DE EVALUACIONES POR RESPONDER -->
+  <section class="evaluaciones-seccion">
+    <div class="seccion-cabecera">
+      <div>
+        <h2>Mis Evaluaciones por Responder</h2>
+        <p class="seccion-subtexto">Cuestionarios asignados correspondientes al periodo activo</p>
+      </div>
+      <span class="badge-contador badge-activo">Periodo Activo</span>
+    </div>
+
+    <div class="evaluaciones-lista-contenedor">
+      {% for e in evaluaciones %}
+        <a class="evaluacion-tarjeta-link" href="{% url 'evaluacion_responder' e.pk %}">
+          <div class="evaluacion-info-izq">
+            <div class="evaluado-nombre">
+              Persona a evaluar: <strong>{{ e.evaluado }}</strong>
+              <span class="cargo-etiqueta">Cargo: {{ e.cargo_real }}</span>
+            </div>
+            <div class="evaluacion-detalles">
+              <span class="detalle-item"><strong>Cuestionario:</strong> {{ e.cuestionario }}</span>
+              <span class="detalle-separador">•</span>
+              <span class="detalle-item"><strong>Periodo:</strong> {{ e.periodo }}</span>
+            </div>
+          </div>
+          <div class="evaluacion-info-der">
+            <span class="etiqueta {% if e.estado == 'PROCESO' %}proceso{% else %}pendiente{% endif %}">
+              {{ e.get_estado_display }}
+            </span>
+            <span class="btn-ir-responder">Responder →</span>
+          </div>
+        </a>
+      {% empty %}
+        <div class="tarjeta-vacia">
+          <div class="vacia-icono">📋</div>
+          <p class="vacia-texto">No tienes evaluaciones pendientes o en proceso dentro de los periodos actualmente activos.</p>
+        </div>
+      {% endfor %}
+    </div>
+  </section>
 </main>
 {% endblock %}

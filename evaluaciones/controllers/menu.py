@@ -1,12 +1,20 @@
-"""CONTROLADOR (MVC): menú principal."""
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
 
-from ..models import Evaluacion
+from accounts.models import Usuario
+from ..models import Cuestionario, Evaluacion, Periodo
 
 
 @login_required
 def inicio(request):
-    # Cualquier usuario ve sus evaluaciones pendientes del periodo activo
-    evaluaciones = Evaluacion.objects.pendientes_de(request.user)
-    return render(request, "evaluaciones/inicio.html", {"evaluaciones": evaluaciones})
+    evaluaciones = Evaluacion.objects.por_responder_de(request.user)
+    context = {
+        "evaluaciones": evaluaciones,
+    }
+    if request.user.es_admin:
+        context.update({
+            "total_cuestionarios": Cuestionario.objects.count(),
+            "total_usuarios": Usuario.objects.count(),
+            "total_periodos": Periodo.objects.count(),
+        })
+    return render(request, "evaluaciones/inicio.html", context)

@@ -11,7 +11,7 @@
       <a href="{% url 'evaluacion_detalle' e.pk %}"><strong>{{ e.evaluador }} evalúa a {{ e.evaluado }}</strong></a>
       <small>{{ e.cuestionario }} · {{ e.periodo }} · {{ e.cargo_evaluado }}</small>
     </div>
-    <span class="etiqueta {% if e.estado == 'TERMINADA' %}on{% else %}neutra{% endif %}">{{ e.get_estado_display }}</span>
+    <span class="etiqueta {% if e.estado == 'TERMINADA' %}on{% elif e.estado == 'PROCESO' %}proceso{% else %}pendiente{% endif %}">{{ e.get_estado_display }}</span>
     <div class="fila-acciones">
       <a href="{% url 'evaluacion_detalle' e.pk %}">Ver</a>
       <a href="{% url 'evaluacion_editar' e.pk %}">Editar</a>

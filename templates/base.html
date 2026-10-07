@@ -1,18 +1,83 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block titulo %}Evaluaciones{% endblock %}</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{% static 'css/base.css' %}">
   {% block css %}{% endblock %}
 </head>
+
 <body class="{% block body_class %}{% endblock %}">
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="toast-container" aria-live="polite">
+    {% if messages %}
+      {% for message in messages %}
+        <div class="toast-card {{ message.tags }}" role="alert">
+          <div class="toast-icon">
+            {% if "admin" in message.tags or user.es_admin %}👑{% else %}✨{% endif %}
+          </div>
+          <div class="toast-body">
+            <div class="toast-title">
+              {% if "admin" in message.tags or user.es_admin %}¡Bienvenido Admin!{% else %}¡Bienvenido!{% endif %}
+            </div>
+            <div class="toast-message">{{ message.message }}</div>
+          </div>
+          <button type="button" class="toast-close" onclick="this.parentElement.remove()" aria-label="Cerrar">&times;</button>
+          <div class="toast-progress"></div>
+        </div>
+      {% endfor %}
+    {% endif %}
+  </div>
+
   {% block contenido %}{% endblock %}
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      // Auto-dismiss Django messages in toast-container
+      const toasts = document.querySelectorAll(".toast-card");
+      toasts.forEach(toast => {
+        setTimeout(() => {
+          toast.classList.add("toast-fade-out");
+          setTimeout(() => toast.remove(), 400);
+        }, 4500);
+      });
+
+      // Welcome toast logic: triggers right after entering
+      {% if user.is_authenticated %}
+        if (!sessionStorage.getItem("welcome_toast_shown")) {
+          sessionStorage.setItem("welcome_toast_shown", "true");
+          const container = document.getElementById("toast-container");
+          if (container && toasts.length === 0) {
+            const isAdmin = {% if user.es_admin %}true{% else %}false{% endif %};
+            const userName = "{{ user.nombre_completo|default:'Usuario'|escapejs }}";
+            const toast = document.createElement("div");
+            toast.className = "toast-card toast_bienvenida " + (isAdmin ? "admin_toast" : "user_toast");
+            toast.innerHTML = `
+              <div class="toast-icon">${isAdmin ? '👑' : '✨'}</div>
+              <div class="toast-body">
+                <div class="toast-title">${isAdmin ? '¡Bienvenido Admin!' : '¡Bienvenido, ' + userName + '!'}</div>
+                <div class="toast-message">${isAdmin ? 'Has iniciado sesión con perfil de Administrador.' : 'Bienvenido al sistema de evaluaciones.'}</div>
+              </div>
+              <button type="button" class="toast-close" onclick="this.parentElement.remove()" aria-label="Cerrar">&times;</button>
+              <div class="toast-progress"></div>
+            `;
+            container.appendChild(toast);
+            setTimeout(() => {
+              toast.classList.add("toast-fade-out");
+              setTimeout(() => toast.remove(), 400);
+            }, 4500);
+          }
+        }
+      {% endif %}
+    });
+  </script>
   {% block js %}{% endblock %}
 </body>
+
 </html>

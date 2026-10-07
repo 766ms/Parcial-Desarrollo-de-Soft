@@ -47,8 +47,18 @@ class EvaluacionForm(EstiloMixin, forms.ModelForm):
     class Meta:
         model = Evaluacion
         fields = ["cuestionario", "periodo", "evaluador", "evaluado", "cargo_evaluado", "estado"]
-        labels = {"evaluador": "Usuario que evalúa", "evaluado": "Usuario evaluado",
-                  "cargo_evaluado": "Cargo del evaluado"}
+        labels = {
+            "evaluador": "Usuario que evalúa (Evaluador)",
+            "evaluado": "Usuario que es evaluado (Evaluado)",
+            "cargo_evaluado": "Cargo del evaluado",
+            "cuestionario": "Cuestionario",
+            "periodo": "Periodo",
+            "estado": "Estado de la evaluación",
+        }
+        help_texts = {
+            "evaluador": "Persona que realiza la valoración y llena la encuesta.",
+            "evaluado": "Persona a la que se le evalúa su desempeño.",
+        }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -56,3 +66,13 @@ class EvaluacionForm(EstiloMixin, forms.ModelForm):
             self.fields["evaluador"].queryset = Usuario.objects.filter(estado=True)
             self.fields["evaluado"].queryset = Usuario.objects.filter(estado=True)
             self.fields["cuestionario"].queryset = Cuestionario.objects.filter(estado=True)
+
+    def clean(self):
+        cleaned_data = super().clean()
+        evaluador = cleaned_data.get("evaluador")
+        evaluado = cleaned_data.get("evaluado")
+
+        if evaluador and evaluado and evaluador == evaluado:
+            self.add_error("evaluado", "El evaluado debe ser distinto de quien evalúa.")
+        return cleaned_data
+

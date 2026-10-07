@@ -25,7 +25,7 @@ class EvaluacionDetalle(AdminMixin, DetailView):
     context_object_name = "evaluacion"
 
     def get_queryset(self):
-        return Evaluacion.objects.con_relaciones()
+        return Evaluacion.objects.con_respuestas()
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
@@ -54,32 +54,43 @@ class ResponderEvaluacion(LoginRequiredMixin, View):
     template_name = "evaluaciones/responder.html"
 
     def _evaluacion(self):
-        # Solo evaluaciones PENDIENTES del usuario, con periodo activo por fechas
-        return get_object_or_404(Evaluacion.objects.pendientes_de(self.request.user), pk=self.kwargs["pk"])
+        # Solo evaluaciones PENDIENTES o PROCESO del usuario, con periodo activo por fechas
+        return get_object_or_404(Evaluacion.objects.por_responder_de(self.request.user), pk=self.kwargs["pk"])
 
     def get(self, request, pk):
         evaluacion = self._evaluacion()
         evaluacion.marcar_inicio()
-        return self._mostrar(evaluacion, {}, {})
+        valores_guardados = evaluacion.obtener_respuestas_dict()
+        return self._mostrar(evaluacion, valores_guardados, {})
 
     def post(self, request, pk):
         evaluacion = self._evaluacion()
         valores = {int(k[2:]): v for k, v in request.POST.items() if k.startswith("p_") and k[2:].isdigit()}
+
         try:
             evaluacion.registrar_respuestas(valores)
         except RespuestaInvalida as e:
             messages.error(request, "Revisa las preguntas marcadas antes de enviar.")
             return self._mostrar(evaluacion, valores, e.errores)
-        messages.success(request, "Evaluación enviada. ¡Gracias!")
+
+        messages.success(request, "Evaluación enviada con éxito. ¡Gracias!")
         return redirect("inicio")
 
     def _mostrar(self, evaluacion, valores, errores):
         """Arma los datos que la VISTA necesita (sección → preguntas → opciones)."""
         secciones = []
-        for s in evaluacion.cuestionario.secciones.prefetch_related("preguntas__opciones"):
-            preguntas = [{
-                "obj": p, "campo": f"p_{p.pk}", "valor": valores.get(p.pk, ""), "error": errores.get(p.pk),
-                "opciones": [{"obj": o, "marcada": str(o.pk) == valores.get(p.pk)} for o in p.opciones.all()],
-            } for p in s.preguntas.all()]
+        cuestionario_secciones = evaluacion.cuestionario.secciones.prefetch_related("preguntas__opciones")
+        for s in cuestionario_secciones:
+            preguntas = [
+                {
+                    "obj": p,
+                    "campo": f"p_{p.pk}",
+                    "valor": str(valores.get(p.pk, "")),
+                    "error": errores.get(p.pk),
+                    "opciones": [{"obj": o, "marcada": str(o.pk) == str(valores.get(p.pk, ""))} for o in p.opciones.all()],
+                }
+                for p in s.preguntas.all()
+            ]
             secciones.append({"obj": s, "preguntas": preguntas})
         return render(self.request, self.template_name, {"evaluacion": evaluacion, "secciones": secciones})
+
