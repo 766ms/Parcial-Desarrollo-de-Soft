@@ -4,6 +4,10 @@ from django.db import models, transaction
 from django.utils import timezone
 
 
+MIN_CARACTERES_RESPUESTA_LIBRE = 3
+MENSAJE_RESPUESTA_LIBRE_CORTA = "La respuesta debe contener al menos 3 caracteres."
+
+
 class RespuestaInvalida(Exception):
     """Se lanza cuando las respuestas enviadas no cumplen las reglas del cuestionario."""
 
@@ -273,18 +277,28 @@ class Evaluacion(models.Model):
         )
         errores, simples, libres = {}, [], []
         for p in preguntas:
-            valor = (str(respuestas.get(p.pk)) if respuestas.get(p.pk) is not None else "").strip()
-            if not valor:
-                if p.requerida:
-                    errores[p.pk] = "Esta pregunta es obligatoria."
-                continue
+            valor_bruto = str(respuestas.get(p.pk)) if respuestas.get(p.pk) is not None else ""
+            valor = valor_bruto.strip()
             if p.tipo == Pregunta.Tipo.SIMPLE:
+                if not valor:
+                    if p.requerida:
+                        errores[p.pk] = "Esta pregunta es obligatoria."
+                    continue
                 opcion = next((o for o in p.opciones.all() if str(o.pk) == valor), None)
                 if opcion is None:
                     errores[p.pk] = "Selecciona una opción válida."
                     continue
                 simples.append(RespuestaSimple(evaluacion=self, pregunta=p, opcion=opcion))
             else:
+                if not valor:
+                    if p.requerida:
+                        errores[p.pk] = "Esta pregunta es obligatoria."
+                    elif valor_bruto:
+                        errores[p.pk] = MENSAJE_RESPUESTA_LIBRE_CORTA
+                    continue
+                if len(valor) < MIN_CARACTERES_RESPUESTA_LIBRE:
+                    errores[p.pk] = MENSAJE_RESPUESTA_LIBRE_CORTA
+                    continue
                 libres.append(RespuestaLibre(evaluacion=self, pregunta=p, texto=valor))
 
         if errores:
