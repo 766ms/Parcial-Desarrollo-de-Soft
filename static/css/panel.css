@@ -1,4 +1,24 @@
 .barra a { color: #fff; text-decoration: none; font-weight: 500; }
+
+/* Botón "Menú principal": mismo estilo píldora que "Cerrar sesión" */
+.barra a.barra-inicio {
+  display: inline-block;
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 30px;
+  padding: 0.5rem 1.3rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.barra a.barra-inicio:hover {
+  background: #ffffff;
+  color: #6b1442;
+  border-color: #ffffff;
+  transform: translateY(-1px);
+}
 .panel { max-width: 900px; margin: 1.5rem auto 3rem; padding: 0 1rem; }
 .panel h1 { font-size: 1.5rem; color: var(--vino-oscuro); margin: .2rem 0 .8rem; }
 .cabecera { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.2rem; }

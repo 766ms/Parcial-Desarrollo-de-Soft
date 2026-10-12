@@ -3,6 +3,7 @@
 {% block titulo %}Panel Principal · Sistema de Evaluaciones{% endblock %}
 {% block css %}
 <link rel="stylesheet" href="{% static 'css/inicio.css' %}">
+<link rel="stylesheet" href="{% static 'css/evaluaciones_tabs.css' %}">
 {% endblock %}
 
 {% block contenido %}
@@ -91,18 +92,30 @@
     </section>
   {% endif %}
 
-  <!-- SECCIÓN DE EVALUACIONES POR RESPONDER -->
+  <!-- SECCIÓN DE MIS EVALUACIONES (con pestañas por estado) -->
   <section class="evaluaciones-seccion">
     <div class="seccion-cabecera">
       <div>
-        <h2>Mis Evaluaciones por Responder</h2>
-        <p class="seccion-subtexto">Cuestionarios asignados correspondientes al periodo activo</p>
+        <h2>Mis Evaluaciones</h2>
+        <p class="seccion-subtexto">Consulta tus evaluaciones según su estado</p>
       </div>
-      <span class="badge-contador badge-activo">Periodo Activo</span>
     </div>
 
-    <div class="evaluaciones-lista-contenedor">
-      {% for e in evaluaciones %}
+    <div class="eval-tabs" role="tablist" aria-label="Estado de las evaluaciones">
+      <button type="button" class="eval-tab activa" role="tab" id="tab-pendientes" aria-selected="true" aria-controls="panel-pendientes" data-tab="pendientes">
+        Pendientes <span class="eval-tab-contador">{{ pendientes|length }}</span>
+      </button>
+      <button type="button" class="eval-tab" role="tab" id="tab-proceso" aria-selected="false" aria-controls="panel-proceso" tabindex="-1" data-tab="proceso">
+        En proceso <span class="eval-tab-contador">{{ en_proceso|length }}</span>
+      </button>
+      <button type="button" class="eval-tab" role="tab" id="tab-terminadas" aria-selected="false" aria-controls="panel-terminadas" tabindex="-1" data-tab="terminadas">
+        Terminadas <span class="eval-tab-contador">{{ terminadas|length }}</span>
+      </button>
+    </div>
+
+    <!-- PENDIENTES (se muestra por defecto) -->
+    <div class="evaluaciones-lista-contenedor eval-panel" role="tabpanel" id="panel-pendientes" aria-labelledby="tab-pendientes">
+      {% for e in pendientes %}
         <a class="evaluacion-tarjeta-link" href="{% url 'evaluacion_responder' e.pk %}">
           <div class="evaluacion-info-izq">
             <div class="evaluado-nombre">
@@ -116,19 +129,106 @@
             </div>
           </div>
           <div class="evaluacion-info-der">
-            <span class="etiqueta {% if e.estado == 'PROCESO' %}proceso{% else %}pendiente{% endif %}">
-              {{ e.get_estado_display }}
-            </span>
+            <span class="etiqueta pendiente">{{ e.get_estado_display }}</span>
             <span class="btn-ir-responder">Responder →</span>
           </div>
         </a>
       {% empty %}
         <div class="tarjeta-vacia">
           <div class="vacia-icono">📋</div>
-          <p class="vacia-texto">No tienes evaluaciones pendientes o en proceso dentro de los periodos actualmente activos.</p>
+          <p class="vacia-texto">No tienes evaluaciones pendientes en los periodos actualmente activos.</p>
+        </div>
+      {% endfor %}
+    </div>
+
+    <!-- EN PROCESO -->
+    <div class="evaluaciones-lista-contenedor eval-panel" role="tabpanel" id="panel-proceso" aria-labelledby="tab-proceso" hidden>
+      {% for e in en_proceso %}
+        <a class="evaluacion-tarjeta-link" href="{% url 'evaluacion_responder' e.pk %}">
+          <div class="evaluacion-info-izq">
+            <div class="evaluado-nombre">
+              Persona a evaluar: <strong>{{ e.evaluado }}</strong>
+              <span class="cargo-etiqueta">Cargo: {{ e.cargo_real }}</span>
+            </div>
+            <div class="evaluacion-detalles">
+              <span class="detalle-item"><strong>Cuestionario:</strong> {{ e.cuestionario }}</span>
+              <span class="detalle-separador">•</span>
+              <span class="detalle-item"><strong>Periodo:</strong> {{ e.periodo }}</span>
+            </div>
+          </div>
+          <div class="evaluacion-info-der">
+            <span class="etiqueta proceso">En proceso</span>
+            <span class="btn-ir-responder">Continuar →</span>
+          </div>
+        </a>
+      {% empty %}
+        <div class="tarjeta-vacia">
+          <div class="vacia-icono">⏳</div>
+          <p class="vacia-texto">No tienes evaluaciones en proceso.</p>
+        </div>
+      {% endfor %}
+    </div>
+
+    <!-- TERMINADAS (solo consulta, ya no se pueden responder) -->
+    <div class="evaluaciones-lista-contenedor eval-panel" role="tabpanel" id="panel-terminadas" aria-labelledby="tab-terminadas" hidden>
+      {% for e in terminadas %}
+        <div class="evaluacion-tarjeta-link es-terminada">
+          <div class="evaluacion-info-izq">
+            <div class="evaluado-nombre">
+              Persona evaluada: <strong>{{ e.evaluado }}</strong>
+              <span class="cargo-etiqueta">Cargo: {{ e.cargo_real }}</span>
+            </div>
+            <div class="evaluacion-detalles">
+              <span class="detalle-item"><strong>Cuestionario:</strong> {{ e.cuestionario }}</span>
+              <span class="detalle-separador">•</span>
+              <span class="detalle-item"><strong>Periodo:</strong> {{ e.periodo }}</span>
+              {% if e.fecha_hora_final %}
+                <span class="detalle-separador">•</span>
+                <span class="detalle-item"><strong>Enviada:</strong> {{ e.fecha_hora_final|date:"d/m/Y H:i" }}</span>
+              {% endif %}
+            </div>
+          </div>
+          <div class="evaluacion-info-der">
+            <span class="etiqueta terminada">✓ Terminada</span>
+          </div>
+        </div>
+      {% empty %}
+        <div class="tarjeta-vacia">
+          <div class="vacia-icono">✅</div>
+          <p class="vacia-texto">Todavía no has terminado ninguna evaluación.</p>
         </div>
       {% endfor %}
     </div>
   </section>
 </main>
+{% endblock %}
+
+{% block js %}
+<script>
+  (() => {
+    const tabs = [...document.querySelectorAll(".eval-tab")];
+    const paneles = [...document.querySelectorAll(".eval-panel")];
+    if (!tabs.length) return;
+
+    const activar = (tab) => {
+      tabs.forEach((t) => {
+        const activa = t === tab;
+        t.classList.toggle("activa", activa);
+        t.setAttribute("aria-selected", activa ? "true" : "false");
+        t.tabIndex = activa ? 0 : -1;
+      });
+      paneles.forEach((p) => { p.hidden = p.id !== "panel-" + (tab.dataset.tab === "proceso" ? "proceso" : tab.dataset.tab); });
+    };
+
+    tabs.forEach((tab, i) => {
+      tab.addEventListener("click", () => activar(tab));
+      tab.addEventListener("keydown", (e) => {
+        if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
+        const sig = tabs[(i + (e.key === "ArrowRight" ? 1 : tabs.length - 1)) % tabs.length];
+        sig.focus();
+        activar(sig);
+      });
+    });
+  })();
+</script>
 {% endblock %}
