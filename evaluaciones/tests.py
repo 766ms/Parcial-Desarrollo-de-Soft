@@ -8,6 +8,7 @@ from accounts.models import Usuario
 from evaluaciones.models import (
     Cuestionario,
     Evaluacion,
+    MENSAJE_RESPUESTA_LIBRE_CORTA,
     Opcion,
     Periodo,
     Pregunta,
@@ -61,6 +62,22 @@ class EvaluacionTestCase(TestCase):
             requerida=False,
         )
 
+    def crear_evaluacion(self):
+        sufijo = Evaluacion.objects.count() + 1
+        hoy = timezone.localdate()
+        periodo = Periodo.objects.create(
+            nombre=f"Periodo prueba {sufijo}",
+            fecha_apertura=hoy - timedelta(days=5),
+            fecha_cierre=hoy + timedelta(days=5),
+        )
+        return Evaluacion.objects.create(
+            cuestionario=self.cuestionario,
+            periodo=periodo,
+            evaluador=self.evaluador,
+            evaluado=self.evaluado,
+            cargo_evaluado="Desarrollador",
+        )
+
     def test_creacion_evaluacion_estado_inicial_pendiente(self):
         evaluacion = Evaluacion.objects.create(
             cuestionario=self.cuestionario,
@@ -88,13 +105,7 @@ class EvaluacionTestCase(TestCase):
 
 
     def test_registrar_respuestas_completa_evaluacion(self):
-        evaluacion = Evaluacion.objects.create(
-            cuestionario=self.cuestionario,
-            periodo=self.periodo,
-            evaluador=self.evaluador,
-            evaluado=self.evaluado,
-            cargo_evaluado="Desarrollador",
-        )
+        evaluacion = self.crear_evaluacion()
         evaluacion.registrar_respuestas({
             self.pregunta_simple.pk: str(self.opcion_excelente.pk),
             self.pregunta_libre.pk: "Buen desempeño general",
@@ -105,14 +116,72 @@ class EvaluacionTestCase(TestCase):
         self.assertEqual(evaluacion.respuestas_simples.count(), 1)
         self.assertEqual(evaluacion.respuestas_libres.count(), 1)
 
-    def test_registrar_respuestas_valida_obligatorias(self):
-        evaluacion = Evaluacion.objects.create(
-            cuestionario=self.cuestionario,
-            periodo=self.periodo,
-            evaluador=self.evaluador,
-            evaluado=self.evaluado,
-            cargo_evaluado="Desarrollador",
+    def test_respuesta_libre_rechaza_menos_de_tres_caracteres_validos(self):
+        casos_invalidos = ["A", "No", "   ", " A "]
+
+        for texto in casos_invalidos:
+            with self.subTest(texto=texto):
+                evaluacion = self.crear_evaluacion()
+                with self.assertRaises(RespuestaInvalida) as ctx:
+                    evaluacion.registrar_respuestas({
+                        self.pregunta_simple.pk: str(self.opcion_excelente.pk),
+                        self.pregunta_libre.pk: texto,
+                    })
+
+                self.assertEqual(ctx.exception.errores[self.pregunta_libre.pk], MENSAJE_RESPUESTA_LIBRE_CORTA)
+                evaluacion.refresh_from_db()
+                self.assertEqual(evaluacion.estado, Evaluacion.Estado.PENDIENTE)
+                self.assertIsNone(evaluacion.fecha_hora_final)
+                self.assertEqual(evaluacion.respuestas_libres.count(), 0)
+
+    def test_respuesta_libre_acepta_tres_o_mas_caracteres_validos(self):
+        casos_validos = [("Sol", "Sol"), ("Hola", "Hola"), ("  Sol  ", "Sol")]
+
+        for texto, esperado in casos_validos:
+            with self.subTest(texto=texto):
+                evaluacion = self.crear_evaluacion()
+                evaluacion.registrar_respuestas({
+                    self.pregunta_simple.pk: str(self.opcion_excelente.pk),
+                    self.pregunta_libre.pk: texto,
+                })
+
+                evaluacion.refresh_from_db()
+                self.assertEqual(evaluacion.estado, Evaluacion.Estado.TERMINADA)
+                self.assertEqual(evaluacion.respuestas_libres.get(pregunta=self.pregunta_libre).texto, esperado)
+
+    def test_respuesta_libre_opcional_vacia_se_conserva_opcional(self):
+        evaluacion = self.crear_evaluacion()
+        evaluacion.registrar_respuestas({
+            self.pregunta_simple.pk: str(self.opcion_excelente.pk),
+            self.pregunta_libre.pk: "",
+        })
+
+        evaluacion.refresh_from_db()
+        self.assertEqual(evaluacion.estado, Evaluacion.Estado.TERMINADA)
+        self.assertEqual(evaluacion.respuestas_simples.count(), 1)
+        self.assertEqual(evaluacion.respuestas_libres.count(), 0)
+
+    def test_respuesta_libre_obligatoria_vacia_sigue_siendo_obligatoria(self):
+        pregunta_requerida = Pregunta.objects.create(
+            seccion=self.seccion,
+            descripcion="Justificación obligatoria",
+            tipo=Pregunta.Tipo.LIBRE,
+            orden=3,
+            requerida=True,
         )
+        evaluacion = self.crear_evaluacion()
+
+        with self.assertRaises(RespuestaInvalida) as ctx:
+            evaluacion.registrar_respuestas({
+                self.pregunta_simple.pk: str(self.opcion_excelente.pk),
+                self.pregunta_libre.pk: "",
+                pregunta_requerida.pk: "",
+            })
+
+        self.assertEqual(ctx.exception.errores[pregunta_requerida.pk], "Esta pregunta es obligatoria.")
+
+    def test_registrar_respuestas_valida_obligatorias(self):
+        evaluacion = self.crear_evaluacion()
         with self.assertRaises(RespuestaInvalida):
             # No se envía la pregunta simple obligatoria
             evaluacion.registrar_respuestas({self.pregunta_libre.pk: "Texto libre solamente"})

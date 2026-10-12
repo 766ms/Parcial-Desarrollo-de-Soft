@@ -8,7 +8,7 @@
   </div>
 </div>
 
-<form method="post" novalidate>
+<form method="post" novalidate data-form-respuestas>
   {% csrf_token %}
   {% for s in secciones %}
     <section class="tarjeta">
@@ -24,9 +24,12 @@
               {% endfor %}
             </div>
           {% else %}
-            <textarea class="entrada" name="{{ p.campo }}" rows="4">{{ p.valor }}</textarea>
+            <textarea class="entrada" name="{{ p.campo }}" rows="4" minlength="3"
+              data-respuesta-libre aria-describedby="error_{{ p.campo }}"
+              {% if p.obj.requerida %}data-requerida="true" required{% endif %}
+              {% if p.error %}aria-invalid="true"{% endif %}>{{ p.valor }}</textarea>
           {% endif %}
-          {% if p.error %}<p class="error">{{ p.error }}</p>{% endif %}
+          <p class="error" id="error_{{ p.campo }}" aria-live="polite" {% if not p.error %}hidden{% endif %}>{{ p.error }}</p>
         </fieldset>
       {% endfor %}
     </section>
@@ -38,4 +41,72 @@
     <button class="btn" type="submit">Enviar evaluación</button>
   </div>
 </form>
+{% endblock %}
+
+{% block js %}
+{{ block.super }}
+<script>
+  (() => {
+    const form = document.querySelector("[data-form-respuestas]");
+    if (!form) return;
+
+    const mensajeMinimo = "La respuesta debe contener al menos 3 caracteres.";
+    const mensajeObligatorio = "Esta pregunta es obligatoria.";
+
+    const mostrarError = (campo, mensaje) => {
+      const fieldset = campo.closest(".enunciado");
+      const error = fieldset?.querySelector(`#${campo.getAttribute("aria-describedby")}`);
+      campo.setAttribute("aria-invalid", "true");
+      fieldset?.classList.add("con-error");
+      if (error) {
+        error.textContent = mensaje;
+        error.hidden = false;
+      }
+    };
+
+    const limpiarError = (campo) => {
+      const fieldset = campo.closest(".enunciado");
+      const error = fieldset?.querySelector(`#${campo.getAttribute("aria-describedby")}`);
+      campo.removeAttribute("aria-invalid");
+      fieldset?.classList.remove("con-error");
+      if (error) {
+        error.textContent = "";
+        error.hidden = true;
+      }
+    };
+
+    const validarCampo = (campo) => {
+      const valorBruto = campo.value;
+      const valor = campo.value.trim();
+      if (!valor && campo.dataset.requerida === "true") {
+        mostrarError(campo, mensajeObligatorio);
+        return false;
+      }
+      if (!valor && valorBruto) {
+        mostrarError(campo, mensajeMinimo);
+        return false;
+      }
+      if (valor && valor.length < 3) {
+        mostrarError(campo, mensajeMinimo);
+        return false;
+      }
+      limpiarError(campo);
+      return true;
+    };
+
+    form.querySelectorAll("[data-respuesta-libre]").forEach((campo) => {
+      campo.addEventListener("input", () => validarCampo(campo));
+      campo.addEventListener("blur", () => validarCampo(campo));
+    });
+
+    form.addEventListener("submit", (event) => {
+      const campos = [...form.querySelectorAll("[data-respuesta-libre]")];
+      const primeroInvalido = campos.find((campo) => !validarCampo(campo));
+      if (primeroInvalido) {
+        event.preventDefault();
+        primeroInvalido.focus();
+      }
+    });
+  })();
+</script>
 {% endblock %}
