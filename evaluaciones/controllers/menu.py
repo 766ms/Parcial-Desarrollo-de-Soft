@@ -7,9 +7,17 @@ from ..models import Cuestionario, Evaluacion, Periodo
 
 @login_required
 def inicio(request):
-    evaluaciones = Evaluacion.objects.por_responder_de(request.user)
+    # Pendientes y en proceso: solo las que se pueden responder (periodo activo)
+    por_responder = Evaluacion.objects.por_responder_de(request.user)
+    # Terminadas: historial completo del evaluador, de cualquier periodo
+    terminadas = Evaluacion.objects.con_relaciones().filter(
+        evaluador=request.user, estado=Evaluacion.Estado.TERMINADA
+    )
     context = {
-        "evaluaciones": evaluaciones,
+        "evaluaciones": por_responder,
+        "pendientes": por_responder.filter(estado=Evaluacion.Estado.PENDIENTE),
+        "en_proceso": por_responder.filter(estado=Evaluacion.Estado.PROCESO),
+        "terminadas": terminadas,
     }
     if request.user.es_admin:
         context.update({

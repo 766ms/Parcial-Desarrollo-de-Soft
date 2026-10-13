@@ -1,5 +1,6 @@
 {% extends "base_panel.html" %}
 {% block titulo %}{{ evaluacion.cuestionario.nombre }}{% endblock %}
+{% block barra_derecha %}{% endblock %}
 {% block panel %}
 <div class="cabecera">
   <div>
@@ -37,8 +38,8 @@
     <p class="vacio">Este cuestionario todavía no tiene preguntas.</p>
   {% endfor %}
   <div class="acciones">
-    <a class="btn btn-claro" href="{% url 'inicio' %}">Salir sin enviar</a>
-    <button class="btn" type="submit">Enviar evaluación</button>
+    <button class="btn btn-claro" type="submit" name="accion" value="borrador" formnovalidate data-guardar-borrador>Guardar y salir</button>
+    <button class="btn" type="submit" name="accion" value="enviar">Enviar evaluación</button>
   </div>
 </form>
 {% endblock %}
@@ -99,7 +100,18 @@
       campo.addEventListener("blur", () => validarCampo(campo));
     });
 
+    // Guardar progreso: no se valida nada, solo se guarda lo escrito
+    const botonBorrador = form.querySelector("[data-guardar-borrador]");
+
+    // Al volver al menú desde la barra superior también se guarda el progreso
+    document.querySelector(".barra-inicio")?.addEventListener("click", (event) => {
+      if (!botonBorrador) return;
+      event.preventDefault();
+      form.requestSubmit(botonBorrador);
+    });
+
     form.addEventListener("submit", (event) => {
+      if (event.submitter && event.submitter.value === "borrador") return;
       const campos = [...form.querySelectorAll("[data-respuesta-libre]")];
       const primeroInvalido = campos.find((campo) => !validarCampo(campo));
       if (primeroInvalido) {

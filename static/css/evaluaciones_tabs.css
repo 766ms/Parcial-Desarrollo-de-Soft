@@ -1,0 +1,122 @@
+/* --- CONTENEDOR EN FORMA DE CARTA PARA "MIS EVALUACIONES" (solo visual) --- */
+.evaluaciones-seccion {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  padding: 1.8rem 2rem 2rem;
+  box-shadow: 0 8px 28px rgba(74, 14, 46, 0.06);
+}
+
+/* --- PESTAÑAS DE ESTADO DE EVALUACIONES (vista del evaluador) --- */
+.eval-tabs {
+  display: flex;
+  gap: 0.4rem;
+  margin: 1.2rem 0 1.4rem;
+  padding: 0.35rem;
+  background: #f1f5f9;
+  border-radius: 14px;
+  width: fit-content;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.eval-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  border: 0;
+  background: transparent;
+  color: #64748b;
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  padding: 0.55rem 1.1rem;
+  border-radius: 10px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.eval-tab:hover {
+  color: #6b1442;
+}
+
+.eval-tab.activa {
+  background: #ffffff;
+  color: #6b1442;
+  box-shadow: 0 2px 8px rgba(74, 14, 46, 0.12);
+}
+
+.eval-tab-contador {
+  min-width: 1.5rem;
+  padding: 0.1rem 0.5rem;
+  border-radius: 20px;
+  background: #e2e8f0;
+  color: #475569;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.eval-tab.activa .eval-tab-contador {
+  background: #6b1442;
+  color: #ffffff;
+}
+
+.eval-panel[hidden] {
+  display: none;
+}
+
+/* --- ETIQUETAS DE ESTADO --- */
+.etiqueta {
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 0.25rem 0.8rem;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+
+.etiqueta.pendiente {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.etiqueta.proceso {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.etiqueta.terminada {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+/* --- TARJETA TERMINADA (solo consulta, sin enlace) --- */
+.evaluacion-tarjeta-link.es-terminada {
+  border-left-color: #22c55e;
+  cursor: default;
+}
+
+.evaluacion-tarjeta-link.es-terminada:hover {
+  transform: none;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.02);
+  border-color: #e2e8f0;
+  border-left-color: #22c55e;
+}
+
+@media (max-width: 720px) {
+  .evaluaciones-seccion {
+    padding: 1.2rem 1rem 1.4rem;
+    border-radius: 16px;
+  }
+
+  .eval-tabs {
+    width: 100%;
+  }
+
+  .eval-tab {
+    flex: 1;
+    justify-content: center;
+    padding: 0.55rem 0.7rem;
+  }
+}

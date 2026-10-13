@@ -8,7 +8,9 @@
 {% block contenido %}
 <header class="barra">
   <a class="barra-inicio" href="{% url 'inicio' %}">← Menú principal</a>
+  {% block barra_derecha %}
   <form method="post" action="{% url 'logout' %}">{% csrf_token %}<button class="btn-salir">Cerrar sesión</button></form>
+  {% endblock %}
 </header>
 <main class="panel">
   {% if messages %}

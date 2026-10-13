@@ -67,6 +67,12 @@ class ResponderEvaluacion(LoginRequiredMixin, View):
         evaluacion = self._evaluacion()
         valores = {int(k[2:]): v for k, v in request.POST.items() if k.startswith("p_") and k[2:].isdigit()}
 
+        # Guardar progreso sin enviar: no exige respuestas obligatorias y la evaluación queda EN PROCESO
+        if request.POST.get("accion") == "borrador":
+            evaluacion.guardar_borrador(valores)
+            messages.success(request, "Progreso guardado. Podrás continuar la evaluación cuando quieras.")
+            return redirect("inicio")
+
         try:
             evaluacion.registrar_respuestas(valores)
         except RespuestaInvalida as e:
@@ -93,4 +99,3 @@ class ResponderEvaluacion(LoginRequiredMixin, View):
             ]
             secciones.append({"obj": s, "preguntas": preguntas})
         return render(self.request, self.template_name, {"evaluacion": evaluacion, "secciones": secciones})
-
