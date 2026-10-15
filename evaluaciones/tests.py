@@ -9,6 +9,7 @@ from evaluaciones.models import (
     Cuestionario,
     Evaluacion,
     MENSAJE_RESPUESTA_LIBRE_CORTA,
+    MENSAJE_RESPUESTA_LIBRE_SIN_LETRAS,
     Opcion,
     Periodo,
     Pregunta,
@@ -135,7 +136,7 @@ class EvaluacionTestCase(TestCase):
                 self.assertEqual(evaluacion.respuestas_libres.count(), 0)
 
     def test_respuesta_libre_acepta_tres_o_mas_caracteres_validos(self):
-        casos_validos = [("Sol", "Sol"), ("Hola", "Hola"), ("  Sol  ", "Sol")]
+        casos_validos = [("Sol", "Sol"), ("Hola", "Hola"), ("  Sol  ", "Sol"), ("Sí!", "Sí!")]
 
         for texto, esperado in casos_validos:
             with self.subTest(texto=texto):
@@ -148,6 +149,20 @@ class EvaluacionTestCase(TestCase):
                 evaluacion.refresh_from_db()
                 self.assertEqual(evaluacion.estado, Evaluacion.Estado.TERMINADA)
                 self.assertEqual(evaluacion.respuestas_libres.get(pregunta=self.pregunta_libre).texto, esperado)
+
+    def test_respuesta_libre_rechaza_respuestas_sin_letras(self):
+        for texto in ("...", "!!!", "123"):
+            with self.subTest(texto=texto):
+                evaluacion = self.crear_evaluacion()
+                with self.assertRaises(RespuestaInvalida) as ctx:
+                    evaluacion.registrar_respuestas({
+                        self.pregunta_simple.pk: str(self.opcion_excelente.pk),
+                        self.pregunta_libre.pk: texto,
+                    })
+                self.assertEqual(
+                    ctx.exception.errores[self.pregunta_libre.pk],
+                    MENSAJE_RESPUESTA_LIBRE_SIN_LETRAS,
+                )
 
     def test_respuesta_libre_opcional_vacia_se_conserva_opcional(self):
         evaluacion = self.crear_evaluacion()

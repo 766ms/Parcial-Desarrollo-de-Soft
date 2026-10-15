@@ -6,6 +6,7 @@ from django.utils import timezone
 
 MIN_CARACTERES_RESPUESTA_LIBRE = 3
 MENSAJE_RESPUESTA_LIBRE_CORTA = "La respuesta debe contener al menos 3 caracteres."
+MENSAJE_RESPUESTA_LIBRE_SIN_LETRAS = "La respuesta debe incluir al menos una letra."
 
 
 class RespuestaInvalida(Exception):
@@ -298,6 +299,9 @@ class Evaluacion(models.Model):
                     continue
                 if len(valor) < MIN_CARACTERES_RESPUESTA_LIBRE:
                     errores[p.pk] = MENSAJE_RESPUESTA_LIBRE_CORTA
+                    continue
+                if not any(caracter.isalpha() for caracter in valor):
+                    errores[p.pk] = MENSAJE_RESPUESTA_LIBRE_SIN_LETRAS
                     continue
                 libres.append(RespuestaLibre(evaluacion=self, pregunta=p, texto=valor))
 
