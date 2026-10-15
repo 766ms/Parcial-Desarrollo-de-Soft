@@ -53,6 +53,7 @@
 
     const mensajeMinimo = "La respuesta debe contener al menos 3 caracteres.";
     const mensajeObligatorio = "Esta pregunta es obligatoria.";
+    const mensajeSinLetras = "La respuesta debe incluir al menos una letra.";
 
     const mostrarError = (campo, mensaje) => {
       const fieldset = campo.closest(".enunciado");
@@ -89,6 +90,10 @@
       }
       if (valor && valor.length < 3) {
         mostrarError(campo, mensajeMinimo);
+        return false;
+      }
+      if (valor && !/\p{L}/u.test(valor)) {
+        mostrarError(campo, mensajeSinLetras);
         return false;
       }
       limpiarError(campo);
